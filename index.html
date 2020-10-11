@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>This is Mongo DB</h1>
+    <div>
+        <form action="/aboutMe" method="post">
+            <input type="text" name="name" placeholder="Name" id="">
+            <input type="number" name="age" placeholder="Age" id="">
+            <input type="text" name="job" placeholder="Job" id="">
+            <button onclick="" type="submit">Add Me</button>
+        </form>
+    </div>
+    <div id='user'>
+
+    </div>
+    <div id='updateForm'>
+
+    </div>
+    <script>
+        function loadData() {
+            fetch('/about')
+                .then(res => res.json())
+                .then(data => {
+                    const user = document.getElementById('user');
+                    user.innerHTML = " ";
+                    data.forEach(element => {
+                        const p = document.createElement('p');
+                        p.innerHTML = `
+                        <strong>Name:</strong> ${element.name} -- <strong>Age:</strong> ${element.age} -- <strong>Job:</strong> ${element.job}
+                        <button onclick="updateUser('${element._id}')">Update</button> 
+                        <button onclick='deleteUser("${element._id}")'>Delete</button>
+                    `
+                        user.appendChild(p);
+                    });
+                });
+        }
+
+        loadData();
+
+        function updateUser(id) {
+            fetch(`/user/${id}`)
+                .then(res => res.json())
+                .then(data => {
+                    const updateForm = document.getElementById('updateForm');
+                    updateForm.innerHTML = `
+                    <hr>
+                    <strong>ID:</strong>${data._id}<br>
+                    <strong>Name: </strong>${data.name}<br>
+                    <input type='number' value=${data.age} id='age' name='age' placeholder='Age'>
+                    <br><br>
+                    <input type='text' value=${data.job} id='job' name='job' placeholder='Job'>
+                    <br><br>
+                    <button onclick='submit("${data._id}")'>Submit</button>
+                `
+                });
+        }
+
+
+        function submit(id) {
+            const age = document.getElementById('age').value;
+            const job = document.getElementById('job').value;
+            const user = { age, job };
+            fetch(`update/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(user),
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data) {
+                        loadData();
+                        document.getElementById('updateForm').innerHTML = " ";
+                    }
+                });
+        }
+
+        function deleteUser(id) {
+            fetch(`/delete/${id}`, {
+                method: 'DELETE',
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data) {
+                        window.location.reload();
+                    }
+                });
+        }
+
+
+    </script>
+</body>
+
+</html>
